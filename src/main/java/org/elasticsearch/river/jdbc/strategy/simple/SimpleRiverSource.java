@@ -930,7 +930,7 @@ public class SimpleRiverSource implements RiverSource {
                     try {
                         long l = bd.longValueExact();
                         // TODO argh
-                        if (Long.toString(l).equals(result.getString(i) )) {
+                        if (Long.toString(l).equals(result.getString(i))) {
                             return l;
                         } else {
                             return bd.doubleValue();

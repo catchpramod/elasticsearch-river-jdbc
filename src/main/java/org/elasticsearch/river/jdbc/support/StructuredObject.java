@@ -19,11 +19,14 @@
 package org.elasticsearch.river.jdbc.support;
 
 import org.elasticsearch.common.base.Objects;
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -35,7 +38,7 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  * @author Jörg Prante <joergprante@gmail.com>
  */
 public class StructuredObject implements PseudoColumnNames, Comparable<StructuredObject> {
-
+    private final ESLogger logger = ESLoggerFactory.getLogger(StructuredObject.class.getName());
     private Map<String, String> meta;
     private Map<String, ? super Object> source;
 
@@ -196,7 +199,14 @@ public class StructuredObject implements PseudoColumnNames, Comparable<Structure
                 }
             } else if (o instanceof Map) {
                 build(builder, (Map<String, ? super Object>) o);
-            } else {
+            } else if(o instanceof List){
+                builder.startArray();
+                for(Object obj:(List)o){
+                    build(builder,(Map<String,?super Object>)obj);
+                }
+                builder.endArray();
+            }
+            else {
                 throw new IOException("unknown object class:" + o.getClass().getName());
             }
         }

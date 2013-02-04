@@ -66,7 +66,7 @@ public class SimpleRiverSourceTests extends AbstractRiverTest {
         source.close(statement);
     }
 
-    @Test
+   // @Test
     @Parameters({"sql2", "n"})
     public void testStarQuery(String sql, @Optional Integer n) throws Exception {
         List<? extends Object> params = new ArrayList();
@@ -87,6 +87,33 @@ public class SimpleRiverSourceTests extends AbstractRiverTest {
         }
         listener.reset();
         assertEquals(rows, n == null ? 5 : n);
+        source.close(results);
+        source.close(statement);
+    }
+//@Test
+    public void testExcerpt() throws Exception{
+        List<? extends Object> params = new ArrayList();
+        RiverMouth target=new MockRiverMouth(){
+        @Override
+        public void index(StructuredObject object)throws IOException{
+//                logger.info("object={}",object);
+            }
+        };
+        String sql="select  e.id \"_id\", p.title \"project.title\", e.class \"type\", nvp.id \"project.attributes.[id]\", nvp.name \"project.attributes.[key]\", nvp.value \"project.attributes.[value]\",nvpp.id \"interview.attributes.[id]\", nvpp.name \"interview.attributes.[key]\", nvpp.value \"interview.attributes.[value]\", substr(t.transcript_text,e.start_position+1,(e.end_position-e.start_position)+1) \"exerpt\" from excerpt e left join transcript t on t.id= e.transcript_id left join interview i on i.id=t.interview_id left join interview_name_value_pair invp on i.id=invp.interview_interview_attributes_id left join name_value_pair nvp on invp.name_value_pair_id= nvp.id left join project p on p.id=i.project_id left join project_name_value_pair pnvp on p.id=pnvp.project_interview_attributes_id left join name_value_pair nvpp on pnvp.name_value_pair_id= nvpp.id limit 1000";
+
+        PreparedStatement statement = source.prepareQuery(sql);
+        source.bind(statement, params);
+        ResultSet results = source.executeQuery(statement);
+        logger.info("sql "+sql+" result si "+results);
+        ValueListener listener = new SimpleValueListener().target(target).begin();
+        long rows = 0L;
+        source.beforeFirstRow(results, listener);
+        while (source.nextRow(results, listener)) {
+            rows++;
+        }
+        logger.info("total rows:: "+rows);
+        listener.reset();
+//        assertEquals(rows, n == null ? 5 : n);
         source.close(results);
         source.close(statement);
     }
