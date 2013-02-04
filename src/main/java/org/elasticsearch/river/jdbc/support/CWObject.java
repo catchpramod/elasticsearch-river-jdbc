@@ -2,13 +2,6 @@ package org.elasticsearch.river.jdbc.support;
 
 import java.util.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: kushum
- * Date: 1/30/13
- * Time: 10:39 PM
- * To change this template use File | Settings | File Templates.
- */
 public class CWObject {
     public static int count=0;
     public static final char delimiter = '.';
