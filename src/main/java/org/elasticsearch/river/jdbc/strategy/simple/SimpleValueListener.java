@@ -164,8 +164,6 @@ public class SimpleValueListener<O extends Object> implements ValueListener {
             prev = current;
             current = newObject();
         }
-        System.out.println("Previous: "+prev.toString());
-        System.out.println("Current: "+current.toString());
 
         Map<String, Object> items = new HashMap();
         for (int i = 0; i < keys.size(); i++) {
@@ -222,8 +220,6 @@ public class SimpleValueListener<O extends Object> implements ValueListener {
      * @throws IOException
      */
     public SimpleValueListener end() throws IOException {
-        System.out.println("At last Previous: "+prev.toString());
-        System.out.println("At last Current: "+current.toString());
         if (prev != null) {
             endNested();
             prev.source(current.source());
@@ -333,6 +329,7 @@ public class SimpleValueListener<O extends Object> implements ValueListener {
                 merge(m, q, value);
             }
         }
+//        System.out.println("finally "+map.toString());
         return map;
     }
 }

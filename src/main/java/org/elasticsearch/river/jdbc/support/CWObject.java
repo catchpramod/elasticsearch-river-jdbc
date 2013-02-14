@@ -2,6 +2,9 @@ package org.elasticsearch.river.jdbc.support;
 
 import java.util.*;
 
+/**
+ * Adds additional functionality to SimpleValueListener to merge Array of objects into the document
+ */
 public class CWObject {
     public static int count=0;
     public static final char delimiter = '.';
@@ -16,6 +19,10 @@ public class CWObject {
         this.data = new HashMap<String, List<Object>>();
     }
 
+    /**
+     * add new set of nested items obtained from a row of mysql db
+     * @param items all nested fields from a row
+     */
     public void add(Map<String, Object> items) {
         Map<String, Map<String, Object>> attributes = new HashMap();
         Set<String> skip = skip(items);
@@ -38,11 +45,14 @@ public class CWObject {
         return skipParentSet;
     }
 
+    /**
+     * nested keys is denoted by a field within a square bracket '[]' and separated from parent with a dot '.'
+     * @param key
+     * @return
+     */
     public static boolean isNestedKey(String key) {
         int i = key.lastIndexOf(delimiter);
-//        System.out.println("Key is "+key);
         String[] childs=key.split("\\.");
-//        for(String st:childs) System.out.println("split"+st);
         return childs[childs.length-1].startsWith("[")&&childs[childs.length-1].endsWith("]"); //nested elements being designated within square brackets viz. parent.[element]
     }
 
@@ -70,6 +80,10 @@ public class CWObject {
         return false;
     }
 
+    /**
+     * After reading all records for a row, need to added to a store for reading next row
+     * @param lineData data of nested fields from current row
+     */
     public void flush(Map<String, Map<String, Object>> lineData) {
         for (String parentKey : lineData.keySet()) {
             if (data.get(parentKey) == null) data.put(parentKey, new ArrayList<Object>());
@@ -78,23 +92,35 @@ public class CWObject {
 
     }
 
+    /**
+     * After reading all records for a particular id from multiple rows, nested fields should be pushed into the parent JSON object
+     * and empty the datastructures for reading rows for next id.
+     * @param obj parent object that contains all fields of a document in a JSON representation.
+     */
     public void reset(StructuredObject obj) {
-        merge(obj);
+        merge(obj.source());
+        System.out.println("reset... ");
         data = new HashMap<String, List<Object>>();
     }
 
-    protected void merge(StructuredObject obj) {
+    /**
+     * merge the nested fields for an id to the parent json
+     * @param obj
+     */
+    public void merge(Map<String,Object> obj) {
         for (String key : data.keySet()) {
             int rootIndex = key.indexOf(delimiter);
+
             String parent = key.substring(0, rootIndex);
             String child = key.substring(rootIndex + 1);
             Map<String, Object> childMap = new HashMap<String, Object>();
             childMap.put(child, data.get(key));
-            if(obj.source().containsKey(parent)){
-                for(Map.Entry<String,Object> entry:((Map<String,Object>) obj.source().get(parent)).entrySet())
+            if(obj.containsKey(parent)){
+                for(Map.Entry<String,Object> entry:((Map<String,Object>) obj.get(parent)).entrySet())
                 childMap.put(entry.getKey(),entry.getValue());
             }
-            obj.source().put(parent, childMap);
+            obj.put(parent, childMap);
+
         }
     }
 }
