@@ -53,7 +53,7 @@ public class SimpleRiverJobTargetTests extends AbstractRiverNodeTest {
         return context;
     }
 
-    @Test
+//    @Test
     @Parameters({"river1", "sql1", "sql2"})
     public void testSimpleRiverJob(String riverResource, String sql1, String sql2) throws IOException, InterruptedException, SQLException {
         Connection connection = source.connectionForWriting();

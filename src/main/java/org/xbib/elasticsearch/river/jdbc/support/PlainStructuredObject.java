@@ -1,6 +1,8 @@
 package org.xbib.elasticsearch.river.jdbc.support;
 
 import org.elasticsearch.common.base.Objects;
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
@@ -12,7 +14,7 @@ import java.util.Map;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class PlainStructuredObject implements StructuredObject {
-
+    private final ESLogger logger = ESLoggerFactory.getLogger(StructuredObject.class.getName());
     private Map<String, String> meta;
 
     private Map<String, ? super Object> source;
@@ -175,7 +177,12 @@ public class PlainStructuredObject implements StructuredObject {
             } else if (o instanceof Map) {
                 build(builder, (Map<String, ? super Object>) o);
             } else if (o instanceof List) {
-                build(builder, (List) o);
+//              build(builder, (List) o);
+                builder.startArray();
+                for(Object obj:(List)o){
+                    build(builder,(Map<String,?super Object>)obj);
+                }
+                builder.endArray();
             } else {
                 try {
                     builder.value(o);

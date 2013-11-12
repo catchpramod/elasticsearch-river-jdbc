@@ -26,16 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.xbib.elasticsearch.river.jdbc.RiverMouth;
-import org.xbib.elasticsearch.river.jdbc.support.DigestStructuredObject;
-import org.xbib.elasticsearch.river.jdbc.support.Operations;
-import org.xbib.elasticsearch.river.jdbc.support.PlainStructuredObject;
-import org.xbib.elasticsearch.river.jdbc.support.PseudoColumnNames;
-import org.xbib.elasticsearch.river.jdbc.support.StructuredObject;
-import org.xbib.elasticsearch.river.jdbc.support.ValueListener;
-import org.xbib.elasticsearch.river.jdbc.support.Values;
+import org.xbib.elasticsearch.river.jdbc.support.*;
 
 /**
  * The SimpleValueListener class consumes values from a database and transports
@@ -67,12 +62,14 @@ public class SimpleValueListener<O extends Object> implements ValueListener {
      * Should not be modified.
      */
     private char delimiter = '.';
+    private CWObject nested;
     /**
      * If digesting is enabled. This is the default.
      */
     private boolean digesting = true;
 
     private MessageDigest digest;
+    private final ESLogger logger = ESLoggerFactory.getLogger(SimpleValueListener.class.getName());
 
     public SimpleValueListener target(RiverMouth target) {
         this.target = target;
@@ -109,6 +106,13 @@ public class SimpleValueListener<O extends Object> implements ValueListener {
      */
     public SimpleValueListener begin() throws IOException {
         return this;
+    }
+
+    /**
+     * Support for nested object array
+     */
+    private void setUp() {
+        nested = new CWObject(keys);
     }
 
     /**
@@ -161,17 +165,31 @@ public class SimpleValueListener<O extends Object> implements ValueListener {
         }
         // switch to next structured object if current is not equal to previous
         if (!current.equals(prev) || current.isEmpty()) {
-            prev.source(current.source()); // "steal" source 
+            endNested();
+            prev.source(current.source()); // "steal" source
             end(prev); // here, the element is being prepared for bulk indexing
             prev = current;
             current = newObject();
         }
-        // create current object from values by sequentially merging the values
+
+        Map<String, Object> items = new HashMap();
         for (int i = 0; i < keys.size(); i++) {
-            Map m = merge(current.source(), keys.get(i), values.get(i));
-            current.source(m);
+            if (CWObject.isNestedKey(keys.get(i))) {
+                items.put(keys.get(i), values.get(i));
+            } else {
+                Map m = merge(current.source(), keys.get(i), values.get(i));
+                current.source(m);
+            }
+
         }
+        nested.add(items);
         return this;
+    }
+
+    private void endNested() {
+        if (nested != null) {
+            nested.reset(current);
+        } else setUp();
     }
 
     protected void map(String k, String v, StructuredObject current) throws IOException {
@@ -210,6 +228,7 @@ public class SimpleValueListener<O extends Object> implements ValueListener {
      */
     public SimpleValueListener end() throws IOException {
         if (prev != null) {
+            endNested();
             prev.source(current.source());
             end(prev);
         }
