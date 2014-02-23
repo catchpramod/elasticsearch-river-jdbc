@@ -1,7 +1,9 @@
+
 package org.xbib.elasticsearch.river.jdbc.support;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.xbib.elasticsearch.gatherer.Values;
 
 /**
  * Unit-test checking basic functionality of {@link Values}.

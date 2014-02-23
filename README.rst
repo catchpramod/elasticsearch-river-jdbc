@@ -12,16 +12,17 @@ It is implemented as an `Elasticsearch plugin <http://www.elasticsearch.org/guid
 The relational data is internally transformed into structured JSON objects for the schema-less indexing model in Elasticsearch.
 
 Creating a JDBC river is easy. Install the plugin. Download a JDBC driver jar from your vendor's site (here MySQL) and put the jar into the folder of the plugin `$ES_HOME/plugins/river-jdbc`.
-Then issue this command::
+Then issue this simple command::
 
     curl -XPUT 'localhost:9200/_river/my_jdbc_river/_meta' -d '{
         "type" : "jdbc",
         "jdbc" : {
-            "driver" : "com.mysql.jdbc.Driver",
             "url" : "jdbc:mysql://localhost:3306/test",
             "user" : "",
             "password" : "",
-            "sql" : "select * from orders"
+            "sql" : "select * from orders",
+            "index" : "my_jdbc_index",
+            "type" : "my_jdbc_type"
         }
     }'
 
@@ -30,16 +31,17 @@ Installation
 
 .. image:: https://travis-ci.org/jprante/elasticsearch-river-jdbc.png
 
-Prerequisites::
+Prerequisites
 
-  Elasticsearch 0.90+
-  a JDBC driver jar for your database (download from vendor site)
+  - a JDBC driver jar for your database (download from vendor site and put into JDBC river plugin folder)
 
-=============  =========  =================  ===========================================================
-ES version     Plugin     Release date       Command
--------------  ---------  -----------------  -----------------------------------------------------------
-0.90.5         **2.2.2**  Oct 13, 2013       ./bin/plugin -install river-jdbc -url http://bit.ly/1iovWV9
-=============  =========  =================  ===========================================================
+=============  ===========  =================  =============================================================
+ES version     Plugin       Release date       Command
+-------------  -----------  -----------------  -------------------------------------------------------------
+0.90.3         0.90.3.1     Jan 31, 2014       ./bin/plugin -install river-jdbc -url http://bit.ly/1emqDH9
+0.90.10        0.90.10.2    Jan 31, 2014       ./bin/plugin -install river-jdbc -url http://bit.ly/1a8Mcve
+1.0.0          1.0.0.1      Feb 13, 2014       ./bin/plugin --install river-jdbc --url http://bit.ly/1jyXrR9
+=============  ===========  =================  =============================================================
 
 Do not forget to restart the node after installing.
 
@@ -57,6 +59,8 @@ Binaries are available at `Bintray <https://bintray.com/pkg/show/general/jprante
 Documentation
 -------------
 
+Attention: working on the documentation for 1.0.0.x is still in progress!
+
 `Quickstart <../../../elasticsearch-river-jdbc/wiki/Quickstart>`_
 
 `JDBC river parameters <../../../elasticsearch-river-jdbc/wiki/JDBC-River-parameters>`_
@@ -73,13 +77,7 @@ Documentation
 
 `Bulk indexing <../../../elasticsearch-river-jdbc/wiki/Bulk-indexing>`_
 
-`Updates with versioning <../../../elasticsearch-river-jdbc/wiki/Updates-with-versioning>`_
-
-`Updates with database table <../../../elasticsearch-river-jdbc/wiki/Updates-with-database-table>`_
-
 `Setting up the river with PostgreSQL <../../../elasticsearch-river-jdbc/wiki/Step-by-step-recipe-for-setting-up-the-river-with-PostgreSQL>`_
-
-`Loading from CSV <../../../elasticsearch-river-jdbc/wiki/Loading-CSV>`_
 
 License
 =======

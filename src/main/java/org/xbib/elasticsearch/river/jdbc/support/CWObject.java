@@ -8,21 +8,24 @@ package org.xbib.elasticsearch.river.jdbc.support;
  * To change this template use File | Settings | File Templates.
  */
 
+import org.xbib.elasticsearch.gatherer.IndexableObject;
+import org.xbib.elasticsearch.gatherer.Values;
+
 import java.util.*;
 
 /**
  * Adds additional functionality to SimpleValueListener to merge Array of objects into the document
  */
-public class CWObject {
+public class CWObject<K> {
     public static int count=0;
     public static final char delimiter = '.';
     Map<String, List<Object>> data;
     Set<String> ids = new HashSet<String>();
     public static final String ID = "id"; //Hardcoded to id field for maintaining unique objects in array
 
-    public CWObject(List<String> keys) {
-        for (String key : keys) {
-            if (isNestedKey(key) && key.contains(ID)) this.ids.add(key);
+    public CWObject(List<K> keys) {
+        for (K key : keys) {
+            if (isNestedKey(key.toString()) && key.toString().contains(ID)) this.ids.add(key.toString());
         }
         this.data = new HashMap<String, List<Object>>();
     }
@@ -105,7 +108,7 @@ public class CWObject {
      * and empty the datastructures for reading rows for next id.
      * @param obj parent object that contains all fields of a document in a JSON representation.
      */
-    public void reset(StructuredObject obj) {
+    public void reset(IndexableObject obj) {
         merge(obj.source());
         System.out.println("reset... ");
         data = new HashMap<String, List<Object>>();
